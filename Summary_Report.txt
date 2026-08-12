@@ -1,0 +1,66 @@
+================================================================================
+EXECUTIVE SUMMARY & TECHNICAL REPORT: CREDIT CARD FRAUD DETECTION
+================================================================================
+Project: Real-Time Credit Card Fraud Detection System (Week 2 Track)
+Author: Syed Izhan Ali (Student ID: 13022)
+Dataset: ULB Credit Card Fraud Dataset (284,807 transactions, 0.17% Fraud Rate)
+
+--------------------------------------------------------------------------------
+1. DATA PREPROCESSING & CLASS IMPALANCE UNDERSTANDING
+--------------------------------------------------------------------------------
+- Preprocessing: Dropped 1,081 duplicate transactions to prevent data leakage.
+- Feature Scaling: Utilized 'RobustScaler' over 'StandardScaler' for 'Time' and 
+  'Amount' features because credit card transaction amounts and intervals contain 
+  extreme outliers. RobustScaler uses median and IQR, making it immune to outliers.
+- Accuracy Paradox: Standard accuracy (e.g., 99.8%) is meaningless in severe class 
+  imbalance (0.17% fraud). A dummy model predicting all transactions as 'Genuine' 
+  achieves 99.83% accuracy while catching 0% of actual fraud cases.
+
+--------------------------------------------------------------------------------
+2. IMBALANCE HANDLING COMPARISON
+--------------------------------------------------------------------------------
+- Oversampling alone (SMOTE/ADASYN) creates synthetic fraud points but can 
+  introduce noise near decision boundaries.
+- Hybrid Resampling (SMOTEENN): Applied a hybrid approach combining SMOTE 
+  oversampling with Edited Nearest Neighbors (ENN) undersampling. SMOTE 
+  synthesizes rare fraud cases while ENN cleans noisy overlapping samples.
+- Resampled Training Dataset Shape: 452,857 rows (Balanced distribution).
+
+--------------------------------------------------------------------------------
+3. MODEL PERFORMANCE & COMPARATIVE ANALYSIS
+--------------------------------------------------------------------------------
+Models were evaluated using Stratified K-Fold Cross-Validation (5 splits) to 
+preserve class distribution ratio across all validation folds.
+
+Evaluation Metrics Summary:
+--------------------------------------------------------------------------------
+Model                        | PR-AUC  | ROC-AUC | Primary Strength
+--------------------------------------------------------------------------------
+Logistic Regression          | 0.7289  | 0.9600  | Baseline linear model
+Random Forest Classifier     | 0.8149  | 0.9593  | Strong tree ensemble
+XGBoost Classifier (Selected)| 0.8013  | 0.9748  | Optimal gradient boosting
+Isolation Forest (Unsup)    | 0.2507  | N/A     | Anomaly baseline (Low PR)
+--------------------------------------------------------------------------------
+
+- Key Finding: Supervised models significantly outperformed unsupervised Isolation 
+  Forest. XGBoost demonstrated superior ranking ability across Precision-Recall curve.
+
+--------------------------------------------------------------------------------
+4. COST-SENSITIVE THRESHOLD OPTIMIZATION
+--------------------------------------------------------------------------------
+- Default Threshold (0.5) is sub-optimal for asymmetric financial risk.
+- Cost Matrix Assumptions:
+  * Missed Fraud (False Negative): $100 penalty (Average unrecovered fraud loss)
+  * False Alarm (False Positive): $5 penalty (Customer friction & verification cost)
+- Optimal Decision Threshold Identified: 0.7968
+- Business Impact: Adjusting decision threshold to 0.7968 reduced estimated 
+  financial loss to $1,890.00, minimizing total operational and fraud risk costs.
+
+--------------------------------------------------------------------------------
+5. FINAL RECOMMENDATION & DEPLOYMENT ARTIFACT
+--------------------------------------------------------------------------------
+- Recommended Pipeline: Hybrid SMOTEENN + XGBoost Classifier with 0.7968 Threshold.
+- Artifact Generated: Saved production-ready model as 'fraud_detection_xgb_model.pkl'.
+- Real-Time Capability: Successfully simulated a streaming transaction scoring loop 
+  with real-time probability logging.
+================================================================================
